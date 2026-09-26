@@ -1,0 +1,14 @@
+# FUTURE IMPROVEMENTS & KNOWN ISSUES
+
+## Features
+- Real API / University Integration: [COMPLETED] Built `kau_fetcher.py` targeting Karlstad University (kau.se). It dynamically scrapes the course page, downloads official 'kursutvärderingsanalyser' PDF reports in memory, and feeds them into Gemini without requiring manual file uploads.
+- Multi-PDF Aggregation: When multiple evaluation reports are fetched across years (e.g. HT-24, HT-25), the AI synthesizes trends over time. Further hierarchical map-reduce can be implemented in the future FastAPI service.
+
+## Architecture & Tech Stack
+- Frontend Migration: Streamlit is updated with live fetching and `st.session_state` caching. Moving forward, transition to the planned FastAPI service backend with a modern web UI.
+- PDF Parsing Robustness: `pypdf` extracts text in-memory. For the upcoming service, support native Gemini multimodal PDF ingestion to preserve table and graph formatting.
+- State Management: [COMPLETED] Implemented `st.session_state` caching for summaries and report lists so results persist across UI interactions.
+
+## Reliability
+- Error Handling: Need better handling for Gemini API rate limits, network timeouts, and malformed PDFs.
+- Testing: Add unit tests for `pdf_processor.py` to ensure prompt logic and Pydantic parsing remain stable.

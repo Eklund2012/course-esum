@@ -1,0 +1,17 @@
+services:
+  api:
+    build: .
+    container_name: course_esum_service
+    ports:
+      - "8000:8000"
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - API_KEY=${API_KEY:-dev-secret-key-12345}
+      - DATABASE_URL=sqlite:////app/data/course_esum.db
+      - APP_ENV=production
+    volumes:
+      - course_data:/app/data
+    restart: unless-stopped
+
+volumes:
+  course_data:
