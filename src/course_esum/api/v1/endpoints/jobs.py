@@ -3,7 +3,7 @@ import asyncio
 from fastapi import APIRouter, HTTPException, Depends, status
 from sse_starlette.sse import EventSourceResponse
 from sqlmodel import Session, select
-from course_esum.api.dependencies import DbDep, AuthDep
+from course_esum.api.dependencies import DbDep, AuthDep, AuthQueryDep
 from course_esum.models.job import EvaluationJob
 from course_esum.models.course import EvaluationReport
 from course_esum.schemas.job import JobResponse, JobStatus, InputType
@@ -58,7 +58,7 @@ def get_job_status(job_id: str, session: Session = DbDep):
 @router.get(
     "/jobs/{job_id}/stream",
     summary="Subscribe to real-time Server-Sent Events (SSE) for a job",
-    dependencies=[AuthDep]
+    dependencies=[AuthQueryDep]
 )
 async def stream_job_events(job_id: str, session: Session = DbDep):
     """

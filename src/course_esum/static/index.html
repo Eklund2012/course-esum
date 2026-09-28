@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="AI-powered university course evaluation analysis. Fetch reports from Karlstad University or upload your own PDFs for instant summarization.">
+  <title>Course Evaluation Summarizer</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<div class="app-shell">
+
+  <!-- ─── Header ─── -->
+  <header class="app-header">
+    <div class="app-header__icon" aria-hidden="true">🎓</div>
+    <h1>Course Evaluation Summarizer</h1>
+    <p>Analyze university course evaluations with AI. Fetch reports from Karlstad University automatically, or upload your own PDFs.</p>
+  </header>
+
+  <!-- ─── Input Card ─── -->
+  <section class="glass-card input-section" aria-label="Configuration">
+
+    <!-- Tab Switcher -->
+    <div class="tab-switcher" role="tablist" aria-label="Input method">
+      <button
+        id="tab-code"
+        class="tab-switcher__btn tab-switcher__btn--active"
+        role="tab"
+        aria-selected="true"
+        aria-controls="panel-code"
+        type="button">
+        Course Code
+      </button>
+      <button
+        id="tab-upload"
+        class="tab-switcher__btn"
+        role="tab"
+        aria-selected="false"
+        aria-controls="panel-upload"
+        type="button">
+        Upload PDFs
+      </button>
+    </div>
+
+    <!-- Panel: Course Code -->
+    <div id="panel-code" role="tabpanel" aria-labelledby="tab-code">
+      <div class="field">
+        <label class="field__label" for="course-code">Course Code</label>
+        <input
+          id="course-code"
+          class="field__input"
+          type="text"
+          value="DVAE24"
+          placeholder="e.g. DVAE24, ISGB11"
+          autocomplete="off"
+          spellcheck="false">
+        <p class="field__hint">Fetches official kursutvärderingsanalyser from kau.se</p>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label class="field__label" for="max-reports">Max Reports</label>
+          <div class="range-group">
+            <input id="max-reports" type="range" min="1" max="5" value="3">
+            <span id="max-reports-val" class="range-group__value">3</span>
+          </div>
+        </div>
+        <div class="field">
+          <label class="field__label" for="output-lang">Output Language</label>
+          <select id="output-lang" class="field__select">
+            <option value="English" selected>English</option>
+            <option value="Swedish">Swedish</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Panel: Upload -->
+    <div id="panel-upload" role="tabpanel" aria-labelledby="tab-upload" hidden>
+      <div class="field">
+        <label class="field__label">PDF Documents</label>
+        <div id="upload-zone" class="upload-zone">
+          <div class="upload-zone__icon" aria-hidden="true">📄</div>
+          <div class="upload-zone__text">
+            Drag &amp; drop PDFs here, or <strong>browse</strong>
+          </div>
+          <input
+            id="file-input"
+            type="file"
+            accept=".pdf"
+            multiple
+            aria-label="Upload PDF files">
+        </div>
+        <div id="file-list" class="upload-zone__files"></div>
+      </div>
+      <div class="field">
+        <label class="field__label" for="output-lang-upload">Output Language</label>
+        <select id="output-lang-upload" class="field__select">
+          <option value="English" selected>English</option>
+          <option value="Swedish">Swedish</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Submit -->
+    <button id="submit-btn" class="btn-primary" type="button">
+      <span id="submit-btn-text">Generate Summary</span>
+    </button>
+
+    <!-- Demo Toggle -->
+    <label class="demo-toggle">
+      <input id="demo-mode" type="checkbox">
+      <span class="demo-toggle__label">Use demo data (no API call)</span>
+    </label>
+
+    <!-- Status Bar -->
+    <div id="status-bar" class="status-bar" role="status" aria-live="polite"></div>
+  </section>
+
+  <!-- ─── Results ─── -->
+  <section id="results-section" class="results-section" aria-label="Results"></section>
+
+  <!-- ─── Footer ─── -->
+  <footer class="app-footer">
+    Course Evaluation Summarizer &middot; Powered by Gemini AI
+  </footer>
+
+</div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>
