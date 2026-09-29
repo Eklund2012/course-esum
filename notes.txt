@@ -12,3 +12,14 @@
 ## Reliability
 - Error Handling: Need better handling for Gemini API rate limits, network timeouts, and malformed PDFs.
 - Testing: Add unit tests for `pdf_processor.py` to ensure prompt logic and Pydantic parsing remain stable.
+
+
+
+
+# Possible future extensions
+Why only 5 pdf to evaluate
+How many students answered total, and each years
+If any pdfs are missing, for example HT-25 is missing
+If any quote in the pdf is from a student, highlight it, can be interesting
+Also check, old exams
+Check the syllabus for information about what students should learn
