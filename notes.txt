@@ -1,25 +1,110 @@
-# FUTURE IMPROVEMENTS & KNOWN ISSUES
+# Course Evaluation Summarizer (course-esum)
+# Future Improvements, Extensions, Known Issues & Roadmap
 
-## Features
-- Real API / University Integration: [COMPLETED] Built `kau_fetcher.py` targeting Karlstad University (kau.se). It dynamically scrapes the course page, downloads official 'kursutvärderingsanalyser' PDF reports in memory, and feeds them into Gemini without requiring manual file uploads.
-- Multi-PDF Aggregation: When multiple evaluation reports are fetched across years (e.g. HT-24, HT-25), the AI synthesizes trends over time. Further hierarchical map-reduce can be implemented in the future FastAPI service.
+================================================================================
+PRIORITIZATION TIER LIST (What to Handle First)
+================================================================================
 
-## Architecture & Tech Stack
-- Frontend Migration: Streamlit is updated with live fetching and `st.session_state` caching. Moving forward, transition to the planned FastAPI service backend with a modern web UI.
-- PDF Parsing Robustness: `pypdf` extracts text in-memory. For the upcoming service, support native Gemini multimodal PDF ingestion to preserve table and graph formatting.
-- State Management: [COMPLETED] Implemented `st.session_state` caching for summaries and report lists so results persist across UI interactions.
+[S-Tier] Must-Have / Critical Reliability & Accuracy
+  1. Student Response Counts & Cohort Metrics Extraction
+     - Extract response rates (e.g. 5/32 students, 16%) so users know how representative feedback is.
 
-## Reliability
-- Error Handling: Need better handling for Gemini API rate limits, network timeouts, and malformed PDFs.
-- Testing: Add unit tests for `pdf_processor.py` to ensure prompt logic and Pydantic parsing remain stable.
+[A-Tier] High Value / Core User Experience
+  2. Missing Term & Timeline Gap Detection
+     - Flag missing semesters (e.g., "HT-24 report missing/unpublished") in longitudinal analysis.
+  3. Direct Student Quote Extraction & Highlighting
+     - Isolate verbatim student quotes from teacher commentary in UI badges/cards.
+  4. Document-Hash Caching for AI Summaries
+     - Cache summaries by SHA-256 of PDF bytes to avoid re-billing Gemini for identical queries.
+
+[B-Tier] Architecture & Scale
+  5. Async HTTP Client (httpx) in University Provider
+     - Replace blocking urllib.request with non-blocking async requests.
+  6. Configurable Report Window & Hierarchical Map-Reduce
+     - Allow analyzing 5+ to 10+ terms via map-reduce over individual term summaries.
+  7. Comprehensive Unit & Mock Integration Tests
+     - Add tests for SummarizerService, malformed PDFs, and provider scraping failures.
+
+[C-Tier] Advanced Extensions / Nice-to-Have
+  8. Syllabus (Kursplan) Learning Outcome Cross-Referencing
+      - Ingest official course syllabus to check if complaints align with learning goals.
+  9. Past Exam Archive & Difficulty Correlation
+      - Scrape/ingest old exams to compare student workload critiques with exam complexity.
+  10. Production-Grade Worker Queue (ARQ / Redis)
+      - Decouple background jobs from single-process asyncio tasks for multi-worker setups.
 
 
+================================================================================
+1. FUTURE EXTENSIONS (Detailed Feature Analysis)
+================================================================================
+
+1.1 Student Response Counts & Cohort Metrics
+  - Current State: Summaries treat all reports equally without quantifying statistical significance.
+  - Goal: Extract both the total number of registered students and the number of respondents per term.
+  - Why it matters: A harsh critique from 1 respondent out of 60 (1.6% response rate) represents an outlier, whereas consistent feedback from 45 out of 50 respondents (90%) indicates systemic course issues.
+  - Implementation: Add `respondents_count`, `registered_count`, and `response_rate_percent` to `CourseEvaluationSummary` schema and Gemini prompt instructions.
+
+1.2 Missing Term & Timeline Gap Detection
+  - Current State: If KAU has reports for HT-22, VT-23, and HT-25, the missing VT-24/HT-24 reports are silently skipped.
+  - Goal: Automatically infer the expected academic calendar sequence (HT/VT or Autumn/Spring terms) and explicitly flag missing reports.
+  - Why it matters: Prevents users from assuming a course had no complaints when an evaluation report was simply unpublished, delayed, or cancelled.
+  - Implementation: Add a regex calendar parser to the provider that checks chronological continuity between fetched terms and returns a list of `missing_terms`.
+
+1.3 Direct Student Quote Extraction & Attribution
+  - Current State: Gemini produces generic bullet points mixing student opinions with the course coordinator's reflection ("Kursledarens analys").
+  - Goal: Extract impactful verbatim student quotes and present them with context (positive vs. critical).
+  - Why it matters: Direct student quotes provide rich qualitative nuance and authenticity that high-level bullet summaries often lose.
+  - Implementation: Add a dedicated `student_quotes: List[Dict[str, str]]` field to the Pydantic schema with fields for `quote`, `category` (positive/critique/suggestion), and `term`.
+
+1.4 Configurable Report Window & Hierarchical Map-Reduce
+  - Current State: Hard-limited to 3-5 reports in the UI due to single-prompt context packaging.
+  - Goal: Support analyzing arbitrary spans (e.g., 5 to 10+ historical terms).
+  - Why it matters: Long-running courses need longitudinal 5-10 year reviews to evaluate major curriculum redesigns.
+  - Implementation: When `max_reports > 5`, use a two-phase hierarchical map-reduce: (Phase 1) summarize each term individually, (Phase 2) synthesize the multi-term trajectory from the individual summaries.
+
+1.5 Syllabus (Kursplan) Learning Outcome Verification
+  - Current State: Evaluations are evaluated in isolation from formal course requirements.
+  - Goal: Fetch the official course syllabus (Kursplan) from kau.se using the course code and compare evaluation feedback against stated learning outcomes (förväntade studieresultat) and examination formats.
+  - Why it matters: Reveals if student complaints stem from misaligned expectations (e.g. students complaining about theoretical math in a course whose syllabus explicitly mandates it).
+
+1.6 Past Exam Archive & Difficulty Correlation
+  - Current State: The system only inspects post-course survey reports.
+  - Goal: Ingest or upload historical exam papers (tentor) and statistics to correlate student failure/pass rates with evaluation sentiment regarding exam fairness.
 
 
-# Possible future extensions
-Why only 5 pdf to evaluate
-How many students answered total, and each years
-If any pdfs are missing, for example HT-25 is missing
-If any quote in the pdf is from a student, highlight it, can be interesting
-Also check, old exams
-Check the syllabus for information about what students should learn
+================================================================================
+2. FUTURE ARCHITECTURE & SYSTEM IMPROVEMENTS
+================================================================================
+
+2.1 Non-Blocking Async HTTP Client
+  - Issue: `KarlstadUniversityProvider` currently uses Python's synchronous `urllib.request.urlopen`, which blocks the event loop thread during scraping and PDF downloads.
+  - Solution: Migrate to `httpx.AsyncClient` with connection pooling, custom timeouts, and exponential backoff on network errors.
+
+2.2 Document-Hash Caching & Token Cost Optimization
+  - Issue: Re-submitting the same course code fetches and sends identical PDFs to Gemini, consuming unnecessary API quota and tokens.
+  - Solution: Compute SHA-256 hash sets of downloaded PDF reports. If a matching report combination exists in the SQLModel database, return cached results instantly (`cached: true`).
+
+2.3 Durable Background Job Queue
+  - Issue: Current background tasks run in-process via `asyncio.create_task`. Server restarts or crashes cause in-flight jobs to be abandoned.
+  - Solution: For multi-instance or production deployments, integrate a lightweight queue like ARQ (Redis-backed) or Celery with persistent job states.
+
+2.4 Enhanced Web UI Dashboard
+  - Improvements:
+    - Visual timeline showing terms evaluated with badges for missing terms.
+    - Interactive quote cards with sentiment tagging.
+    - Workload meter widget (e.g. Low / Appropriate / High / Overwhelming).
+    - One-click export to Markdown and PDF summary reports.
+
+
+================================================================================
+3. KNOWN ISSUES & RELIABILITY
+================================================================================
+
+3.1 University Portal HTML Scraping Fragility
+  - Symptom: `KarlstadUniversityProvider` relies on regex matching for course titles and PDF links on `www.kau.se`.
+  - Risk: Changes in KAU's CMS, markup, or subdomains (`www3.kau.se`) could break link discovery.
+  - Fix: Use structured HTML parsing (e.g., `BeautifulSoup4` or `selectolax`) with fallback discovery strategies and proactive health-check alarms.
+
+3.2 Test Suite Coverage Gaps
+  - Symptom: Current tests (`test_api_jobs.py`, `test_providers.py`) test API routes and mock provider, but do not test `SummarizerService`, PDF parsing edge cases (empty pages, corrupt files, scans), or SSE event broadcasting.
+  - Fix: Add unit tests with pytest fixtures for Gemini responses, corrupted PDFs, and simulated network timeouts.

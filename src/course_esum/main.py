@@ -10,6 +10,7 @@ from slowapi.errors import RateLimitExceeded
 
 from course_esum.config import get_settings
 from course_esum.core.database import init_db
+from course_esum.core.startup import sweep_orphaned_jobs
 from course_esum.api.v1.router import v1_router
 from course_esum.api.v1.endpoints import health
 
@@ -25,6 +26,7 @@ limiter = Limiter(key_func=get_remote_address, default_limits=[settings.RATE_LIM
 async def lifespan(app: FastAPI):
     # Startup: ensure tables are created
     init_db()
+    sweep_orphaned_jobs()
     yield
     # Shutdown logic if needed
 

@@ -14,6 +14,11 @@ class Settings(BaseSettings):
     # Gemini AI
     GEMINI_API_KEY: str = ""
     GEMINI_MODEL: str = "gemini-2.5-flash"
+
+    # Gemini retry / rate-limit settings
+    GEMINI_MAX_RETRIES: int = 4         # Maximum number of retry attempts
+    GEMINI_BASE_DELAY_MS: int = 500     # Initial backoff delay in milliseconds
+    GEMINI_MAX_DELAY_MS: int = 30_000   # Maximum backoff delay cap in milliseconds
     
     # Persistence
     DATABASE_URL: str = "sqlite:///./course_esum.db"

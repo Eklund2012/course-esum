@@ -5,6 +5,7 @@ from google import genai
 from google.genai import types
 from pydantic import BaseModel, Field
 from dotenv import load_dotenv
+from src.course_esum.services.gemini_retry import GeminiRetryConfig, with_gemini_retry
 
 load_dotenv()
 
@@ -48,7 +49,16 @@ Course Evaluation Text:
 {text}
     """
 
-    response = client.models.generate_content(
+    # Default retry config — matches production defaults; override via env if needed
+    retry_cfg = GeminiRetryConfig(
+        max_retries=int(os.environ.get("GEMINI_MAX_RETRIES", "4")),
+        base_delay_ms=int(os.environ.get("GEMINI_BASE_DELAY_MS", "500")),
+        max_delay_ms=int(os.environ.get("GEMINI_MAX_DELAY_MS", "30000")),
+    )
+
+    response = with_gemini_retry(
+        client.models.generate_content,
+        cfg=retry_cfg,
         model='gemini-2.5-flash',
         contents=prompt,
         config=types.GenerateContentConfig(

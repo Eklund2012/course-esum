@@ -1,6 +1,6 @@
-# Course Evaluation Summarizer Service (`course-esum`)
+# Course Evaluation Summarizer (`course-esum`)
 
-An enterprise-ready, asynchronous microservice that analyzes and summarizes university course evaluation reports (*kursutvärderingsanalyser*) using **Google Gemini 2.5 Flash** and **FastAPI**.
+An asynchronous microservice that analyzes and summarizes university course evaluation reports (*kursutvärderingsanalyser*) using **Google Gemini 2.5 Flash** and **FastAPI**.
 
 ---
 
@@ -10,17 +10,40 @@ An enterprise-ready, asynchronous microservice that analyzes and summarizes univ
 - **Multimodal PDF Ingestion**: Directly streams PDF byte documents into Gemini 2.5 Flash, preserving multi-column layouts, score distributions, and tables without OCR degradation.
 - **Asynchronous 202 Accepted Architecture**: Decouples client HTTP connections from long-running LLM inference via background task execution.
 - **Real-Time SSE Streaming**: Clients can subscribe to `GET /api/v1/evaluations/jobs/{job_id}/stream` for instant push notifications as evaluations process.
-- **Pluggable Provider Architecture**: Clean `CourseEvaluationProvider` abstraction supporting Karlstad University (`KarlstadUniversityProvider`) and mock data (`MockCourseProvider`), easily extensible to other institutions (e.g., Canvas LMS, EvaSys, Ladok).
+- **Pluggable Provider Architecture**: Clean `CourseEvaluationProvider` abstraction supporting Karlstad University (`KarlstadUniversityProvider`) and mock data (`MockCourseProvider`), easily extensible to other institutions.
 - **Persistent State & History**: SQLModel (SQLAlchemy) database tracking jobs, courses, positive/critique summaries, workloads, and multi-year trends.
-- **Security & Rate Limiting**: `X-API-Key` authentication header and request rate limiting (`slowapi`).
+- **Security & Rate Limiting**: `X-API-Key` authentication header and per-client request rate limiting via `slowapi`.
+- **Gemini Retry & Resilience**: Exponential backoff with jitter on Gemini API 429/503 errors via `tenacity`.
+- **Orphaned Job Recovery**: Startup lifecycle hook automatically fails jobs left in `PROCESSING` state after a server restart.
 
 ---
 
-## Quick Start
+## Requirements
 
-### 1. Configure Environment
+- Python 3.11+
+- A Google Gemini API key ([get one here](https://aistudio.google.com/app/apikey))
 
-Ensure your `.env` contains your Gemini API key:
+---
+
+## Setup
+
+### 1. Create a virtual environment
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+### 2. Configure environment variables
+
+Copy `.env.example` to `.env` and fill in your values:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Minimum required values:
 
 ```ini
 GEMINI_API_KEY=your_gemini_api_key_here
@@ -29,19 +52,16 @@ DATABASE_URL=sqlite:///./course_esum.db
 APP_ENV=development
 ```
 
-### 2. Run the Service Locally
-
-Activate your virtual environment and start the Uvicorn server:
+### 3. Run the service
 
 ```powershell
-# Set PYTHONPATH to include src
 $env:PYTHONPATH = "src"
 .\.venv\Scripts\python.exe -m uvicorn course_esum.main:app --reload --port 8000
 ```
 
-The interactive API documentation is available at:
-- **Interactive Swagger UI**: [http://localhost:8000/docs](http://localhost:8000/docs)
-- **ReDoc UI**: [http://localhost:8000/redoc](http://localhost:8000/redoc)
+API documentation is available at:
+- Swagger UI: [http://localhost:8000/docs](http://localhost:8000/docs)
+- ReDoc: [http://localhost:8000/redoc](http://localhost:8000/redoc)
 
 ---
 
@@ -49,7 +69,7 @@ The interactive API documentation is available at:
 
 All requests require the `X-API-Key` header (default in development: `dev-secret-key-12345`).
 
-### 1. Submit Evaluation by Course Code (Karlstad University)
+### Submit evaluation by course code
 
 ```http
 POST /api/v1/evaluations/jobs/fetch
@@ -78,7 +98,7 @@ X-API-Key: dev-secret-key-12345
 }
 ```
 
-### 2. Poll Job Status & Summary
+### Poll job status and result
 
 ```http
 GET /api/v1/evaluations/jobs/job_a1b2c3d4e5f6
@@ -111,7 +131,7 @@ X-API-Key: dev-secret-key-12345
 }
 ```
 
-### 3. Stream Real-Time Updates (SSE)
+### Stream real-time updates (SSE)
 
 ```http
 GET /api/v1/evaluations/jobs/job_a1b2c3d4e5f6/stream
@@ -130,7 +150,7 @@ event: update
 data: {"status": "COMPLETED", "message": "Evaluation summary completed successfully."}
 ```
 
-### 4. Upload Custom PDFs
+### Upload custom PDFs
 
 ```http
 POST /api/v1/evaluations/jobs/upload
@@ -143,22 +163,18 @@ output_language: "English"
 
 ---
 
-## Running Automated Tests
-
-Run the full automated test suite with pytest:
+## Running Tests
 
 ```powershell
+$env:PYTHONPATH = "src"
 .\.venv\Scripts\python.exe -m pytest tests/ -v
 ```
 
 ---
 
-## Docker Deployment
+## Docker
 
 ```powershell
-# Build and run with Docker Compose
 docker compose up -d --build
-
-# Inspect logs
 docker compose logs -f
 ```

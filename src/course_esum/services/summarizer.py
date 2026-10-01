@@ -5,6 +5,7 @@ from google import genai
 from google.genai import types
 from course_esum.config import get_settings
 from course_esum.schemas.evaluation import CourseEvaluationSummary
+from course_esum.services.gemini_retry import GeminiRetryConfig, with_gemini_retry
 
 class SummarizerService:
     def __init__(self, api_key: Optional[str] = None):
@@ -14,6 +15,11 @@ class SummarizerService:
         if not self.api_key:
             raise ValueError("GEMINI_API_KEY is not configured.")
         self.client = genai.Client(api_key=self.api_key)
+        self._retry_cfg = GeminiRetryConfig(
+            max_retries=settings.GEMINI_MAX_RETRIES,
+            base_delay_ms=settings.GEMINI_BASE_DELAY_MS,
+            max_delay_ms=settings.GEMINI_MAX_DELAY_MS,
+        )
 
     @staticmethod
     def compute_hash(data: bytes) -> str:
@@ -36,7 +42,9 @@ Course Evaluation Text:
 {text}
         """
 
-        response = self.client.models.generate_content(
+        response = with_gemini_retry(
+            self.client.models.generate_content,
+            cfg=self._retry_cfg,
             model=self.model,
             contents=prompt,
             config=types.GenerateContentConfig(
@@ -80,7 +88,9 @@ CRITICAL INSTRUCTIONS:
                 )
             )
 
-        response = self.client.models.generate_content(
+        response = with_gemini_retry(
+            self.client.models.generate_content,
+            cfg=self._retry_cfg,
             model=self.model,
             contents=contents,
             config=types.GenerateContentConfig(
