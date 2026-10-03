@@ -19,6 +19,10 @@ class Settings(BaseSettings):
     GEMINI_MAX_RETRIES: int = 4         # Maximum number of retry attempts
     GEMINI_BASE_DELAY_MS: int = 500     # Initial backoff delay in milliseconds
     GEMINI_MAX_DELAY_MS: int = 30_000   # Maximum backoff delay cap in milliseconds
+    GEMINI_TIMEOUT_SECS: int = 120      # Hard wall-clock timeout per Gemini call (seconds)
+
+    # File Upload Limits
+    MAX_UPLOAD_SIZE_MB: int = 15        # Maximum size per uploaded PDF file (megabytes)
     
     # Persistence
     DATABASE_URL: str = "sqlite:///./course_esum.db"

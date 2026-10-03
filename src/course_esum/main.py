@@ -1,3 +1,4 @@
+import logging
 from pathlib import Path
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
@@ -14,6 +15,7 @@ from course_esum.core.startup import sweep_orphaned_jobs
 from course_esum.api.v1.router import v1_router
 from course_esum.api.v1.endpoints import health
 
+logger = logging.getLogger(__name__)
 settings = get_settings()
 
 # Path to bundled static assets (style.css, app.js, index.html)
@@ -24,7 +26,7 @@ limiter = Limiter(key_func=get_remote_address, default_limits=[settings.RATE_LIM
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: ensure tables are created
+    # Startup: ensure tables are created and orphaned jobs resolved
     init_db()
     sweep_orphaned_jobs()
     yield
@@ -44,11 +46,27 @@ app = FastAPI(
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
-# CORS Middleware (permitting web clients like Next.js / React)
+# Global catch-all exception handler — prevents raw Python tracebacks from
+# leaking to clients; always returns a structured JSON error response.
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+    logger.exception("Unhandled exception on %s %s", request.method, request.url.path)
+    return JSONResponse(
+        status_code=500,
+        content={
+            "detail": "An internal server error occurred. Please try again later.",
+            "type": "internal_server_error",
+        },
+    )
+
+# CORS Middleware
+# Note: allow_credentials=True is incompatible with allow_origins=["*"] in
+# browsers (CORS spec §3.2). Use explicit origins when credentials are needed,
+# or keep wildcard and drop credentials support for open/public APIs.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
+    allow_credentials=False,   # must be False when allow_origins=["*"]
     allow_methods=["*"],
     allow_headers=["*"],
 )

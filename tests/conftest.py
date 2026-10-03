@@ -9,12 +9,13 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlmodel import SQLModel, create_engine, Session
 from sqlmodel.pool import StaticPool
+from unittest.mock import patch
 
 from course_esum.main import app
 from course_esum.core.database import get_session
-from course_esum.config import get_settings
 
 TEST_API_KEY = "test-secret-key-999"
+
 
 @pytest.fixture(name="session", scope="function")
 def session_fixture():
@@ -28,22 +29,30 @@ def session_fixture():
     with Session(engine) as session:
         yield session
 
+
 @pytest.fixture(name="client", scope="function")
 def client_fixture(session: Session):
-    """TestClient with overridden DB session."""
+    """
+    TestClient with overridden DB session and API key.
+
+    The Settings object is cached via lru_cache, so mutating the instance
+    directly has no effect once the cache is populated. Instead we patch the
+    underlying attribute on the cached object for the duration of each test.
+    """
+    from course_esum.config import get_settings
+
     def get_session_override():
         return session
 
     app.dependency_overrides[get_session] = get_session_override
-    
-    # Configure test settings
-    settings = get_settings()
-    settings.API_KEY = TEST_API_KEY
 
-    with TestClient(app) as test_client:
-        yield test_client
+    # Patch the *cached* Settings instance so security checks use the test key
+    with patch.object(get_settings(), "API_KEY", TEST_API_KEY):
+        with TestClient(app) as test_client:
+            yield test_client
 
     app.dependency_overrides.clear()
+
 
 @pytest.fixture(name="auth_headers")
 def auth_headers_fixture():

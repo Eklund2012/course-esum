@@ -1,7 +1,11 @@
+import io
 from typing import List, Optional
 from fastapi import APIRouter, BackgroundTasks, UploadFile, File, Form, HTTPException, status
 from sqlmodel import Session, select, desc
+from pypdf import PdfReader
+from pypdf.errors import PdfReadError
 from course_esum.api.dependencies import DbDep, AuthDep
+from course_esum.config import get_settings
 from course_esum.models.job import EvaluationJob
 from course_esum.models.course import EvaluationReport
 from course_esum.schemas.job import JobCreatedResponse, JobStatus, InputType
@@ -81,20 +85,67 @@ async def create_upload_job(
             detail="At least one PDF file must be uploaded."
         )
 
-    # Validate PDF content types and read bytes
+    settings = get_settings()
+    max_bytes = settings.MAX_UPLOAD_SIZE_MB * 1024 * 1024
+
+    # Validate each file: MIME type, magic bytes, size, and readability
     documents = []
     for file in files:
-        if not file.filename.lower().endswith(".pdf"):
+        # 1. Content-type header check
+        if file.content_type not in ("application/pdf", "application/x-pdf"):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"File '{file.filename}' is not a PDF."
+                detail=(
+                    f"'{file.filename}' has an unsupported type '{file.content_type}'. "
+                    "Only PDF files are accepted."
+                )
             )
+
         data = await file.read()
+
+        # 2. Empty file check
         if len(data) == 0:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"File '{file.filename}' is empty."
+                detail=f"'{file.filename}' is empty."
             )
+
+        # 3. Size limit check
+        if len(data) > max_bytes:
+            raise HTTPException(
+                status_code=status.HTTP_413_CONTENT_TOO_LARGE,
+                detail=(
+                    f"'{file.filename}' is {len(data) // (1024*1024)} MB, which exceeds "
+                    f"the {settings.MAX_UPLOAD_SIZE_MB} MB per-file limit."
+                )
+            )
+
+        # 4. PDF magic-byte check (catches renamed non-PDF files)
+        if not data.startswith(b"%PDF"):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"'{file.filename}' does not appear to be a valid PDF file."
+            )
+
+        # 5. Structural validity + password protection check
+        try:
+            reader = PdfReader(io.BytesIO(data))
+            if reader.is_encrypted:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=(
+                        f"'{file.filename}' is password-protected and cannot be processed. "
+                        "Please remove the password and re-upload."
+                    )
+                )
+        except HTTPException:
+            raise
+        except PdfReadError:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"'{file.filename}' appears to be corrupted or is not a readable PDF."
+            )
+
         documents.append((file.filename, data))
 
     job = EvaluationJob(
