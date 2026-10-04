@@ -23,6 +23,11 @@ class EvaluationReport(SQLModel, table=True):
     trend_over_time: str
     reports_analyzed: List[str] = Field(default_factory=list, sa_column=Column(JSON))
     
+    # Cohort metrics (nullable — may not be present in all reports)
+    respondents_count: Optional[int] = Field(default=None)
+    registered_count: Optional[int] = Field(default=None)
+    response_rate_percent: Optional[float] = Field(default=None)
+
     content_hash: Optional[str] = Field(default=None, index=True)
     output_language: str = Field(default="English")
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))

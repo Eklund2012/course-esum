@@ -40,7 +40,10 @@ def get_job_status(job_id: str, session: Session = DbDep):
                 trend_over_time=report.trend_over_time,
                 reports_analyzed=report.reports_analyzed or [],
                 output_language=report.output_language,
-                cached=bool(report.content_hash)
+                cached=bool(report.content_hash),
+                respondents_count=report.respondents_count,
+                registered_count=report.registered_count,
+                response_rate_percent=report.response_rate_percent,
             )
 
     return JobResponse(

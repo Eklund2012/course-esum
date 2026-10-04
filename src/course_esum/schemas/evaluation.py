@@ -20,6 +20,18 @@ class CourseEvaluationSummary(BaseModel):
     trend_over_time: str = Field(
         description="Analysis of how evaluations have evolved across terms or years if historical data exists"
     )
+    respondents_count: Optional[int] = Field(
+        default=None,
+        description="Total number of students who submitted a response across all analyzed reports. Null if not found."
+    )
+    registered_count: Optional[int] = Field(
+        default=None,
+        description="Total number of students registered on the course across all analyzed reports. Null if not found."
+    )
+    response_rate_percent: Optional[float] = Field(
+        default=None,
+        description="Response rate as a percentage (respondents / registered * 100), rounded to one decimal. Null if counts are unavailable."
+    )
 
 class FetchEvaluationRequest(BaseModel):
     """Payload to trigger automated evaluation fetch by course code."""
@@ -37,3 +49,6 @@ class EvaluationReportResponse(BaseModel):
     reports_analyzed: Optional[List[str]] = None
     output_language: str = "English"
     cached: bool = False
+    respondents_count: Optional[int] = None
+    registered_count: Optional[int] = None
+    response_rate_percent: Optional[float] = None

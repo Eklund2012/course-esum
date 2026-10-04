@@ -136,7 +136,10 @@ class JobRunner:
                     workload=summary.workload,
                     trend_over_time=summary.trend_over_time,
                     reports_analyzed=[r.label for r in fetch_result.reports],
-                    output_language=output_language
+                    output_language=output_language,
+                    respondents_count=summary.respondents_count,
+                    registered_count=summary.registered_count,
+                    response_rate_percent=summary.response_rate_percent,
                 )
                 session.add(report)
 
@@ -215,7 +218,10 @@ class JobRunner:
                     workload=summary.workload,
                     trend_over_time=summary.trend_over_time,
                     reports_analyzed=[label for label, _ in documents],
-                    output_language=output_language
+                    output_language=output_language,
+                    respondents_count=summary.respondents_count,
+                    registered_count=summary.registered_count,
+                    response_rate_percent=summary.response_rate_percent,
                 )
                 session.add(report)
 

@@ -808,3 +808,64 @@ body::before {
   clip: rect(0,0,0,0);
   border: 0;
 }
+
+/* ---------- Cohort Banner ---------- */
+.cohort-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 18px;
+  margin-bottom: 16px;
+  background: var(--info-bg);
+  border: 1px solid var(--info-border);
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  animation: fadeInUp 0.35s ease both;
+}
+
+.cohort-banner__icon {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  color: var(--info);
+  opacity: 0.85;
+}
+
+.cohort-banner__text {
+  flex: 1;
+  line-height: 1.4;
+}
+
+.cohort-banner__text strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.cohort-badge__rate {
+  flex-shrink: 0;
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.cohort-badge--high {
+  background: rgba(52, 211, 153, 0.15);
+  color: var(--positive);
+  border: 1px solid rgba(52, 211, 153, 0.30);
+}
+
+.cohort-badge--medium {
+  background: rgba(251, 191, 36, 0.13);
+  color: var(--warning);
+  border: 1px solid rgba(251, 191, 36, 0.28);
+}
+
+.cohort-badge--low {
+  background: rgba(248, 113, 113, 0.13);
+  color: var(--negative);
+  border: 1px solid rgba(248, 113, 113, 0.28);
+}

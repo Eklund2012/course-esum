@@ -65,14 +65,25 @@ See [`.env.example`](.env.example) for the full list of tunable settings.
 
 The database tables are created automatically on first startup via `SQLModel.metadata.create_all()`. There are **no manual migration steps** required for SQLite. If you switch to PostgreSQL, set `DATABASE_URL` accordingly and run the service once to bootstrap the schema.
 
-### 4. Set `PYTHONPATH` and run the service
+### 4. Run the development server
+
+A convenience script at the project root sets `PYTHONPATH` and starts uvicorn in one command:
 
 ```powershell
-$env:PYTHONPATH = "src"
-.\.venv\Scripts\python.exe -m uvicorn course_esum.main:app --reload --port 8000
+.\run.ps1
 ```
 
-> **Tip:** Add `PYTHONPATH=src` to your `.env` file or IDE run configuration so you don't need to set it each time.
+If PowerShell blocks unsigned scripts, run this once first:
+
+```powershell
+Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
+```
+
+> **Manual equivalent** (if you prefer not to use the script):
+> ```powershell
+> $env:PYTHONPATH = "src"
+> .\.venv\Scripts\python.exe -m uvicorn course_esum.main:app --reload --port 8000
+> ```
 
 Interactive API documentation is available once the server is running:
 
@@ -173,10 +184,14 @@ X-API-Key: dev-secret-key-12345
     "critique_summary": ["..."],
     "workload": "Too high",
     "trend_over_time": "...",
-    "reports_analyzed": ["HT-25 (KAU-47889)", "HT-24 (KAU-45494)"]
+    "reports_analyzed": ["HT-25 (KAU-47889)", "HT-24 (KAU-45494)"],
+    "respondents_count": 18,
+    "registered_count": 32,
+    "response_rate_percent": 56.3
   }
 }
 ```
+
 
 ### GET `/api/v1/evaluations/jobs/{job_id}/stream` — Real-time SSE
 
@@ -212,7 +227,7 @@ $env:PYTHONPATH = "src"
 .\.venv\Scripts\python.exe -m pytest tests/ -v
 ```
 
-To also see a coverage report:
+To also see short tracebacks on failures:
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest tests/ -v --tb=short

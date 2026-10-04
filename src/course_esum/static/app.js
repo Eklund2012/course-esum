@@ -23,7 +23,10 @@ const DEMO_DATA = {
     "Student engagement/involvement in lectures and seminars decreased and the course structure's support functions deteriorated slightly"
   ],
   workload: "Too high",
-  trend_over_time: "The course started in 2023 with very good results and high satisfaction. During 2024, grades and satisfaction dropped sharply (partly explained by the course coordinator being on sick leave)..."
+  trend_over_time: "The course started in 2023 with very good results and high satisfaction. During 2024, grades and satisfaction dropped sharply (partly explained by the course coordinator being on sick leave)...",
+  respondents_count: 18,
+  registered_count: 32,
+  response_rate_percent: 56.3
 };
 
 // ──────────────────────────────────────────────
@@ -363,18 +366,51 @@ function showResults(data, reports) {
       </li>
     `).join('') || '<li class="result-card__item"><span>No information available.</span></li>';
 
+  // Cohort metrics badge
+  let cohortHtml = '';
+  if (data.respondents_count != null || data.registered_count != null) {
+    const respondents = data.respondents_count ?? '?';
+    const registered  = data.registered_count  ?? '?';
+    const rate        = data.response_rate_percent != null
+      ? data.response_rate_percent.toFixed(1) + '%'
+      : null;
+
+    let rateClass = '';
+    if (data.response_rate_percent != null) {
+      if (data.response_rate_percent >= 50) rateClass = 'cohort-badge--high';
+      else if (data.response_rate_percent >= 20) rateClass = 'cohort-badge--medium';
+      else rateClass = 'cohort-badge--low';
+    }
+
+    const rateLabel = rate ? `<span class="cohort-badge__rate ${rateClass}">${escapeHtml(rate)}</span>` : '';
+
+    cohortHtml = `
+      <div class="cohort-banner" role="note" aria-label="Response rate information">
+        <svg class="cohort-banner__icon" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <circle cx="10" cy="10" r="9" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M10 5v5l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <span class="cohort-banner__text">
+          <strong>${escapeHtml(String(respondents))}</strong> of
+          <strong>${escapeHtml(String(registered))}</strong> students responded
+        </span>
+        ${rateLabel}
+      </div>
+    `;
+  }
+
   // Reports accordion
   let reportsHtml = '';
   if (reports && reports.length > 0) {
     const linkList = reports.map(label => `
-      <div class="report-link">📎 ${escapeHtml(label)}</div>
+      <div class="report-link">&#128206; ${escapeHtml(label)}</div>
     `).join('');
 
     reportsHtml = `
       <div class="reports-accordion" id="reports-accordion">
         <button class="reports-accordion__trigger" onclick="toggleAccordion()" type="button">
-          <span>📄 Analyzed Reports (${reports.length})</span>
-          <span class="reports-accordion__chevron">▼</span>
+          <span>&#128196; Analyzed Reports (${reports.length})</span>
+          <span class="reports-accordion__chevron">&#9660;</span>
         </button>
         <div class="reports-accordion__content">
           ${linkList}
@@ -385,23 +421,24 @@ function showResults(data, reports) {
 
   resultsSection.innerHTML = `
     <div class="results-header">
-      <span class="results-header__badge">✦ Analysis Complete</span>
+      <span class="results-header__badge">&#10022; Analysis Complete</span>
       <h2>${escapeHtml(data.course_name_and_code || 'Course Evaluation Summary')}</h2>
     </div>
 
+    ${cohortHtml}
     ${reportsHtml}
 
     <div class="results-grid">
       <div class="result-card result-card--positive">
         <div class="result-card__header">
-          <span class="result-card__icon" aria-hidden="true">👍</span>
+          <span class="result-card__icon" aria-hidden="true">&#128077;</span>
           <span class="result-card__title">Positive Aspects</span>
         </div>
         <ul class="result-card__list">${positiveItems}</ul>
       </div>
       <div class="result-card result-card--negative">
         <div class="result-card__header">
-          <span class="result-card__icon" aria-hidden="true">👎</span>
+          <span class="result-card__icon" aria-hidden="true">&#128078;</span>
           <span class="result-card__title">Areas for Improvement</span>
         </div>
         <ul class="result-card__list">${negativeItems}</ul>
@@ -411,14 +448,14 @@ function showResults(data, reports) {
     <div class="info-grid">
       <div class="info-card info-card--workload">
         <div class="info-card__header">
-          <span class="info-card__icon" aria-hidden="true">⚖️</span>
+          <span class="info-card__icon" aria-hidden="true">&#9878;</span>
           <span class="info-card__title">Workload</span>
         </div>
         <p class="info-card__body">${escapeHtml(data.workload || 'No information')}</p>
       </div>
       <div class="info-card info-card--trend">
         <div class="info-card__header">
-          <span class="info-card__icon" aria-hidden="true">📈</span>
+          <span class="info-card__icon" aria-hidden="true">&#128200;</span>
           <span class="info-card__title">Trend Over Time</span>
         </div>
         <p class="info-card__body">${escapeHtml(data.trend_over_time || 'No information')}</p>

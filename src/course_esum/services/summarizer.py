@@ -37,6 +37,14 @@ CRITICAL INSTRUCTIONS:
 2. If the text does not contain information for a specific field, output "No information available" or an empty list.
 3. Keep the bullet points concise, factual, and strictly based on the text.
 4. Provide the final output in the following language: {output_language}
+5. COHORT METRICS: Search the text for student response and registration counts.
+   - Look for patterns like "X of Y students", "X av Y studenter", "svarsfrekvens", "antal svar", "antal registrerade",
+     or table headers that list respondents vs total enrolled.
+   - Set `respondents_count` to the total number of students who answered.
+   - Set `registered_count` to the total number of students registered/enrolled.
+   - Set `response_rate_percent` to (respondents_count / registered_count * 100) rounded to 1 decimal.
+   - If any of these figures are absent from the text, set the corresponding field to null.
+   - If multiple terms are present, sum the counts across all terms.
 
 Course Evaluation Text:
 {text}
@@ -76,6 +84,14 @@ CRITICAL INSTRUCTIONS:
 3. If evaluating multiple terms or academic years, synthesize the overall trajectory in 'trend_over_time'.
 4. Do NOT hallucinate or guess.
 5. Provide the output in the requested language: {output_language}
+6. COHORT METRICS: Locate the student response and registration counts in each attached document.
+   - Common Swedish labels: "Antal svar" (respondents), "Antal registrerade" (registered),
+     "svarsfrekvens" (response rate), or similar columns/rows in summary tables.
+   - Set `respondents_count` to the total number of students who responded across all attached reports.
+   - Set `registered_count` to the total number of registered students across all attached reports.
+   - Set `response_rate_percent` to (respondents_count / registered_count * 100) rounded to 1 decimal.
+   - If these figures cannot be found in the documents, set those fields to null — do not estimate.
+   - If multiple documents are provided, sum the counts across all of them.
         """
 
         contents: list = [prompt]
