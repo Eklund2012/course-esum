@@ -7,6 +7,29 @@ from course_esum.config import get_settings
 from course_esum.schemas.evaluation import CourseEvaluationSummary
 from course_esum.services.gemini_retry import GeminiRetryConfig, with_gemini_retry
 
+_STUDENT_QUOTE_INSTRUCTIONS = """
+STUDENT QUOTES (student_quotes):
+- Extract 3 to 5 representative verbatim student quotes from free-text survey responses only.
+- Acceptable sources: open-ended student answers, survey comment fields, student feedback boxes.
+- Forbidden sources: teacher comments, coordinator reflections, examiner remarks, course descriptions,
+  or any section whose heading contains 'reflektion', 'kommentar', 'lararens', 'examinator', or similar.
+- For each quote set:
+    - "quote": the student's exact words (translate to the output language if needed, but do not paraphrase).
+    - "sentiment": one of "positive", "critique", or "neutral".
+    - "context": the survey question or topic this quote addresses (e.g. "Lab sessions", "Exam", "Pacing").
+      Set to null if the topic cannot be determined.
+- If there are fewer than 3 identifiable student quotes in the source material, only return what exists.
+  NEVER fabricate or infer quotes.
+
+TEACHER REFLECTION (teacher_reflection):
+- Locate any section explicitly written by the teacher, course coordinator, or examiner.
+  Common Swedish headings: 'Kursledarens reflektion', 'Laararkommentar', 'Examinatorns kommentar'.
+- Place the full text (or a faithful summary) of that section in the "teacher_reflection" field.
+- If no such section exists, set "teacher_reflection" to null.
+- Do NOT include teacher reflection text inside student_quotes.
+"""
+
+
 class SummarizerService:
     def __init__(self, api_key: Optional[str] = None):
         settings = get_settings()
@@ -45,7 +68,7 @@ CRITICAL INSTRUCTIONS:
    - Set `response_rate_percent` to (respondents_count / registered_count * 100) rounded to 1 decimal.
    - If any of these figures are absent from the text, set the corresponding field to null.
    - If multiple terms are present, sum the counts across all terms.
-
+{_STUDENT_QUOTE_INSTRUCTIONS}
 Course Evaluation Text:
 {text}
         """
@@ -61,7 +84,7 @@ Course Evaluation Text:
                 temperature=0.0,
             ),
         )
-        
+
         parsed = json.loads(response.text)
         return CourseEvaluationSummary.model_validate(parsed)
 
@@ -92,6 +115,7 @@ CRITICAL INSTRUCTIONS:
    - Set `response_rate_percent` to (respondents_count / registered_count * 100) rounded to 1 decimal.
    - If these figures cannot be found in the documents, set those fields to null — do not estimate.
    - If multiple documents are provided, sum the counts across all of them.
+{_STUDENT_QUOTE_INSTRUCTIONS}
         """
 
         contents: list = [prompt]

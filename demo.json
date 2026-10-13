@@ -11,5 +11,36 @@
     "Student engagement/involvement in lectures and seminars decreased and the course structure's support functions deteriorated slightly"
   ],
   "workload": "too high",
-  "trend_over_time": "The course started in 2023 with very good results and high satisfaction. During 2024, grades and satisfaction dropped sharply (partly explained by the course coordinator being on sick leave)..."
+  "trend_over_time": "The course started in 2023 with very good results and high satisfaction. During 2024, grades and satisfaction dropped sharply (partly explained by the course coordinator being on sick leave)...",
+  "respondents_count": 18,
+  "registered_count": 32,
+  "response_rate_percent": 56.3,
+  "student_quotes": [
+    {
+      "quote": "The lab sessions were genuinely the best part. We got to apply theory straight away and the TAs were always there to help.",
+      "sentiment": "positive",
+      "context": "Lab sessions"
+    },
+    {
+      "quote": "I loved how the lectures connected directly to real industry problems. It made studying feel relevant rather than just abstract theory.",
+      "sentiment": "positive",
+      "context": "Lectures"
+    },
+    {
+      "quote": "The exam came out of nowhere — the practice questions didn't really match the actual difficulty. More alignment there would help a lot.",
+      "sentiment": "critique",
+      "context": "Exam"
+    },
+    {
+      "quote": "Workload was brutal in weeks 4 and 5. Three deadlines at the same time felt unmanageable.",
+      "sentiment": "critique",
+      "context": "Workload"
+    },
+    {
+      "quote": "Yes, definitely recommend — but only if you are ready for a serious time commitment.",
+      "sentiment": "neutral",
+      "context": "Overall recommendation"
+    }
+  ],
+  "teacher_reflection": "The course ran well overall and the statistical scores confirm a solid foundation. The drop in workload satisfaction was expected given that we introduced a new compulsory group project this term. Going forward, I plan to stagger the deadlines more evenly. The feedback quality issue is noted — I will provide more detailed rubrics for lab submissions in the next iteration."
 }

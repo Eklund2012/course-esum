@@ -32,6 +32,14 @@ def get_job_status(job_id: str, session: Session = DbDep):
     if job.status == JobStatus.COMPLETED.value:
         report = session.exec(select(EvaluationReport).where(EvaluationReport.job_id == job.id)).first()
         if report:
+            from course_esum.schemas.evaluation import StudentQuote
+
+            raw_quotes = report.student_quotes or []
+            parsed_quotes = [
+                StudentQuote.model_validate(q) if isinstance(q, dict) else q
+                for q in raw_quotes
+            ]
+
             result_data = EvaluationReportResponse(
                 course_name_and_code=report.course_name_and_code,
                 positive_summary=report.positive_summary or [],
@@ -44,7 +52,10 @@ def get_job_status(job_id: str, session: Session = DbDep):
                 respondents_count=report.respondents_count,
                 registered_count=report.registered_count,
                 response_rate_percent=report.response_rate_percent,
+                student_quotes=parsed_quotes,
+                teacher_reflection=report.teacher_reflection,
             )
+
 
     return JobResponse(
         job_id=job.id,

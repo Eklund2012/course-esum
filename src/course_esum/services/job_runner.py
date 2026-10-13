@@ -140,6 +140,8 @@ class JobRunner:
                     respondents_count=summary.respondents_count,
                     registered_count=summary.registered_count,
                     response_rate_percent=summary.response_rate_percent,
+                    student_quotes=[q.model_dump() for q in summary.student_quotes],
+                    teacher_reflection=summary.teacher_reflection,
                 )
                 session.add(report)
 
@@ -222,6 +224,8 @@ class JobRunner:
                     respondents_count=summary.respondents_count,
                     registered_count=summary.registered_count,
                     response_rate_percent=summary.response_rate_percent,
+                    student_quotes=[q.model_dump() for q in summary.student_quotes],
+                    teacher_reflection=summary.teacher_reflection,
                 )
                 session.add(report)
 

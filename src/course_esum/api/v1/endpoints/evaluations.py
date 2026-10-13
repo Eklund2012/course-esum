@@ -188,10 +188,12 @@ def get_evaluation_history(
     session: Session = DbDep
 ):
     """Retrieve previously generated course evaluation summaries."""
+    from course_esum.schemas.evaluation import StudentQuote
+
     query = select(EvaluationReport).order_by(desc(EvaluationReport.created_at)).limit(limit)
     if course_code:
         query = query.where(EvaluationReport.course_code == course_code.strip().upper())
-        
+
     reports = session.exec(query).all()
     return [
         EvaluationReportResponse(
@@ -202,7 +204,16 @@ def get_evaluation_history(
             trend_over_time=r.trend_over_time,
             reports_analyzed=r.reports_analyzed or [],
             output_language=r.output_language,
-            cached=False
+            cached=False,
+            respondents_count=r.respondents_count,
+            registered_count=r.registered_count,
+            response_rate_percent=r.response_rate_percent,
+            student_quotes=[
+                StudentQuote.model_validate(q) if isinstance(q, dict) else q
+                for q in (r.student_quotes or [])
+            ],
+            teacher_reflection=r.teacher_reflection,
         )
         for r in reports
     ]
+

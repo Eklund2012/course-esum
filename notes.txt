@@ -5,10 +5,6 @@
 PRIORITIZATION TIER LIST (What to Handle First)
 ================================================================================
 
-[S-Tier] Must-Have / Critical Reliability & Accuracy
-  1. Student Response Counts & Cohort Metrics Extraction
-     - Extract response rates (e.g. 5/32 students, 16%) so users know how representative feedback is.
-
 [A-Tier] High Value / Core User Experience
   2. Missing Term & Timeline Gap Detection
      - Flag missing semesters (e.g., "HT-24 report missing/unpublished") in longitudinal analysis.

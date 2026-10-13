@@ -869,3 +869,236 @@ body::before {
   color: var(--negative);
   border: 1px solid rgba(248, 113, 113, 0.28);
 }
+
+/* ---------- Student Voices (quotes) ---------- */
+
+.quotes-section {
+  margin-bottom: 20px;
+  animation: cardPopIn 0.5s var(--ease-spring) 0.25s both;
+}
+
+.quotes-section__header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.quotes-section__icon {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  color: var(--accent);
+  opacity: 0.85;
+}
+
+.quotes-section__title {
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--accent);
+}
+
+.quotes-section__count {
+  margin-left: auto;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  padding: 2px 10px;
+}
+
+/* Quote grid: 3 columns on wide screens, 2 on medium, 1 on small */
+.quotes-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+@media (max-width: 900px) {
+  .quotes-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 540px) {
+  .quotes-grid { grid-template-columns: 1fr; }
+}
+
+/* Individual quote card */
+.quote-card {
+  position: relative;
+  border-radius: var(--radius-md);
+  padding: 18px 20px 14px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  animation: cardPopIn 0.45s var(--ease-spring) both;
+  transition: transform 0.2s var(--ease-out), box-shadow 0.2s var(--ease-out);
+}
+
+.quote-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Sentiment colour variants */
+.quote-card--positive {
+  border-color: var(--positive-border);
+  background: var(--positive-bg);
+}
+
+.quote-card--positive::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  background: var(--positive);
+  opacity: 0.55;
+}
+
+.quote-card--critique {
+  border-color: var(--negative-border);
+  background: var(--negative-bg);
+}
+
+.quote-card--critique::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  background: var(--negative);
+  opacity: 0.55;
+}
+
+.quote-card--neutral {
+  border-color: var(--border);
+  background: var(--bg-input);
+}
+
+.quote-card--neutral::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  background: var(--text-muted);
+  opacity: 0.4;
+}
+
+/* Quote text */
+.quote-card__text {
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--text-primary);
+  font-style: italic;
+  flex: 1;
+}
+
+.quote-card__mark {
+  font-size: 1.4em;
+  line-height: 0;
+  vertical-align: -0.25em;
+  opacity: 0.35;
+  font-style: normal;
+}
+
+.quote-card--positive .quote-card__mark { color: var(--positive); }
+.quote-card--critique .quote-card__mark { color: var(--negative); }
+.quote-card--neutral  .quote-card__mark { color: var(--text-muted); }
+
+.quote-card__mark--close { margin-left: 2px; }
+
+/* Footer row: sentiment pill + context tag */
+.quote-card__footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Sentiment pill */
+.quote-card__sentiment {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 2px 9px;
+  border-radius: var(--radius-pill);
+}
+
+.quote-sentiment--positive {
+  background: rgba(52, 211, 153, 0.15);
+  color: var(--positive);
+  border: 1px solid rgba(52, 211, 153, 0.30);
+}
+
+.quote-sentiment--critique {
+  background: rgba(248, 113, 113, 0.15);
+  color: var(--negative);
+  border: 1px solid rgba(248, 113, 113, 0.30);
+}
+
+.quote-sentiment--neutral {
+  background: rgba(99, 115, 155, 0.15);
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+}
+
+/* Context tag */
+.quote-card__context {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  padding: 2px 9px;
+}
+
+/* ---------- Teacher / Coordinator Reflection ---------- */
+
+.teacher-reflection {
+  border-radius: var(--radius-md);
+  padding: 22px 24px;
+  border: 1px solid var(--warning-border);
+  background: var(--warning-bg);
+  animation: cardPopIn 0.5s var(--ease-spring) 0.35s both;
+  margin-bottom: 20px;
+}
+
+.teacher-reflection__header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.teacher-reflection__icon {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  color: var(--warning);
+  opacity: 0.85;
+}
+
+.teacher-reflection__title {
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--warning);
+}
+
+.teacher-reflection__body {
+  font-size: 0.9rem;
+  line-height: 1.65;
+  color: var(--text-primary);
+}

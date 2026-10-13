@@ -41,10 +41,13 @@ def client_fixture(session: Session):
     """
     from course_esum.config import get_settings
 
+    from course_esum.api.dependencies import get_db
+
     def get_session_override():
-        return session
+        yield session
 
     app.dependency_overrides[get_session] = get_session_override
+    app.dependency_overrides[get_db] = get_session_override
 
     # Patch the *cached* Settings instance so security checks use the test key
     with patch.object(get_settings(), "API_KEY", TEST_API_KEY):

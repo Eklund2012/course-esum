@@ -26,7 +26,35 @@ const DEMO_DATA = {
   trend_over_time: "The course started in 2023 with very good results and high satisfaction. During 2024, grades and satisfaction dropped sharply (partly explained by the course coordinator being on sick leave)...",
   respondents_count: 18,
   registered_count: 32,
-  response_rate_percent: 56.3
+  response_rate_percent: 56.3,
+  student_quotes: [
+    {
+      quote: "The lab sessions were genuinely the best part. We got to apply theory straight away and the TAs were always there to help.",
+      sentiment: "positive",
+      context: "Lab sessions"
+    },
+    {
+      quote: "I loved how the lectures connected directly to real industry problems. It made studying feel relevant rather than just abstract theory.",
+      sentiment: "positive",
+      context: "Lectures"
+    },
+    {
+      quote: "The exam came out of nowhere — the practice questions didn't really match the actual difficulty. More alignment there would help a lot.",
+      sentiment: "critique",
+      context: "Exam"
+    },
+    {
+      quote: "Workload was brutal in weeks 4 and 5. Three deadlines at the same time felt unmanageable.",
+      sentiment: "critique",
+      context: "Workload"
+    },
+    {
+      quote: "Yes, definitely recommend — but only if you are ready for a serious time commitment.",
+      sentiment: "neutral",
+      context: "Overall recommendation"
+    }
+  ],
+  teacher_reflection: "The course ran well overall and the statistical scores confirm a solid foundation. The drop in workload satisfaction was expected given that we introduced a new compulsory group project this term. Going forward, I plan to stagger the deadlines more evenly. The feedback quality issue is noted — I will provide more detailed rubrics for lab submissions in the next iteration."
 };
 
 // ──────────────────────────────────────────────
@@ -349,6 +377,53 @@ function hideStatus() {
 // ──────────────────────────────────────────────
 // Render Results
 // ──────────────────────────────────────────────
+
+/**
+ * Build the student-quotes section HTML.
+ * Each quote card is coloured by sentiment and shows an optional context tag.
+ */
+function renderQuotes(quotes) {
+  if (!quotes || quotes.length === 0) return '';
+
+  const SENTIMENT_META = {
+    positive: { label: 'Positive',  cls: 'quote-card--positive' },
+    critique: { label: 'Critique',  cls: 'quote-card--critique' },
+    neutral:  { label: 'Neutral',   cls: 'quote-card--neutral'  },
+  };
+
+  const cards = quotes.map(q => {
+    const meta = SENTIMENT_META[q.sentiment] || SENTIMENT_META.neutral;
+    const contextTag = q.context
+      ? `<span class="quote-card__context">${escapeHtml(q.context)}</span>`
+      : '';
+    return `
+      <figure class="quote-card ${meta.cls}">
+        <blockquote class="quote-card__text">
+          <span class="quote-card__mark" aria-hidden="true">&ldquo;</span>${escapeHtml(q.quote)}<span class="quote-card__mark quote-card__mark--close" aria-hidden="true">&rdquo;</span>
+        </blockquote>
+        <figcaption class="quote-card__footer">
+          <span class="quote-card__sentiment quote-sentiment--${escapeHtml(q.sentiment)}">${escapeHtml(meta.label)}</span>
+          ${contextTag}
+        </figcaption>
+      </figure>
+    `;
+  }).join('');
+
+  return `
+    <section class="quotes-section" aria-label="Student quotes">
+      <header class="quotes-section__header">
+        <svg class="quotes-section__icon" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <path d="M6 10H4a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1Zm0 0v2a2 2 0 0 1-2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M13 10h-2a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1Zm0 0v2a2 2 0 0 1-2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <span class="quotes-section__title">Student Voices</span>
+        <span class="quotes-section__count">${quotes.length} quote${quotes.length !== 1 ? 's' : ''}</span>
+      </header>
+      <div class="quotes-grid">${cards}</div>
+    </section>
+  `;
+}
+
 function showResults(data, reports) {
   const positiveItems = (data.positive_summary || [])
     .map(t => `
@@ -461,6 +536,21 @@ function showResults(data, reports) {
         <p class="info-card__body">${escapeHtml(data.trend_over_time || 'No information')}</p>
       </div>
     </div>
+
+    ${renderQuotes(data.student_quotes)}
+
+    ${data.teacher_reflection ? `
+    <aside class="teacher-reflection" aria-label="Course coordinator reflection">
+      <header class="teacher-reflection__header">
+        <svg class="teacher-reflection__icon" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <circle cx="10" cy="7" r="3" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M3 17c0-3.314 3.134-6 7-6s7 2.686 7 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <span class="teacher-reflection__title">Course Coordinator Reflection</span>
+      </header>
+      <p class="teacher-reflection__body">${escapeHtml(data.teacher_reflection)}</p>
+    </aside>
+    ` : ''}
   `;
 
   resultsSection.className = 'results-section results-section--visible';
